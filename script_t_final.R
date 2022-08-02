@@ -1,7 +1,7 @@
 
 #Trabajo final
 rm(list=ls())
-setwd("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final")
+
 
 library(pacman)
 p_load(tidyverse,
@@ -10,11 +10,15 @@ p_load(tidyverse,
        haven,
        rpart)
 
-base_mar <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/data/base_mar.rds")
+
+### cogemos las variables solo para transporte maritimo
+
+base_mar <- subset(Semestre_2021, VIATRANS==1)
+
 
 #### comezamos a arreglar base
 
-df <- Semestre_2021 %>% select(PAISPRO, DEPTODES, VIATRANS, ACUERDO, PNK, CODA, VAFODO, FLETE, VACID, IMP1, LUIN, COPAEX)
+df <- base_mar %>% select(PAISPRO, DEPTODES, VIATRANS, ACUERDO, PNK, CODA, VAFODO, FLETE, VACID, IMP1, LUIN, COPAEX)
 
 
 # alistamiento de variables
@@ -80,7 +84,7 @@ train <- df[df$holdout==F,]
 library(vtable)
 
 #Getting complex
-st(df, col.breaks = 12,
+st(df, col.breaks = 15,
    summ = list(
      c('notNA(x)','mean(x)','sd(x^2)','min(x)','max(x)'),
      c('notNA(x)','mean(x)')
@@ -135,7 +139,7 @@ reg_tranqui<-train(
 
 
 ##
-base_mar <- subset(base_2021, VIATRANS==1)
+
 
 table(base_mar$CLASE)
 
