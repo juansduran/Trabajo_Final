@@ -49,10 +49,35 @@ df$LUIN <- factor(df$LUIN)
 
 df$PAISPRO <- factor(df$PAISPRO)
 
+#generamos una interacción
+
+df <- df %>% mutate(PNK2 = PNK^2,
+                    PNK4 = PNK^4)
+
+# eliminar copaex porque está generando ruido
+
+df$COPAEX = NULL
 
 
 
-table(df$PNK > 0)
+
+
+### estadísticas descriptivas
+
+library(vtable)
+
+#Getting complex
+st(df, col.breaks = 12,
+   summ = list(
+     c('notNA(x)','mean(x)','sd(x^2)','min(x)','max(x)'),
+     c('notNA(x)','mean(x)')
+   ),
+   summ.names = list(
+     c('N','Mean','SD of X^2','Min','Max'),
+     c('Count','Percent')
+   ))
+
+table(df$ACUERDO)
 
 sum(is.na(df$PNK))
 
