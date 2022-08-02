@@ -1,3 +1,4 @@
+
 #Trabajo final
 rm(list=ls())
 setwd("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final")
@@ -9,7 +10,7 @@ p_load(tidyverse,
        haven,
        rpart)
 
-
+base_mar <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/data/base_mar.rds")
 
 #### comezamos a arreglar base
 
@@ -26,7 +27,7 @@ df$ACUERDO <- as.numeric(df$ACUERDO)
 
 df$ACUERDO[is.na(df$ACUERDO)] <- 0
 
-#Dejamos todos los acuerdo como una dummy, si tiene algun acuerdo se pondrá 1
+#Dejamos todos los acuerdo como una dummy, si tiene algun acuerdo se pondr? 1
 
 df$ACUERDO[df$ACUERDO > 0] <- 1
 
@@ -80,6 +81,7 @@ st(df, col.breaks = 12,
 table(df$ACUERDO)
 
 sum(is.na(df$PNK))
+sum(df$CODA)
 
 
 
@@ -94,35 +96,25 @@ sum(is.na(df$PNK))
 
 
 
+#################################################33
+#Modelos#
+#SE utilizarÃ¡ el paquete caret, por lo que se crearÃ¡ una funciÃ³n para ver 
+#los estadÃ­sticos de comparaciÃ³n y una funciÃ³n de control con cross validation
 
-
-
-
-
-
-
-
-
-#Cargamos base para 2021
-
-#Completa_2021 <- read_dta('data/IMPO.dta')
-
-#saveRDS(Completa_2021, file="base_2021.rds")
-
-
-#Ponemos ctrl para el cross validation
 FiveStats <- function(...) c(twoClassSummary(...), defaultSummary(...))
-##Función para regresiones
+
+
 ctrl <- trainControl(method = "cv",
                      number = 5,
                      savePredictions = TRUE,
                      summaryFunction = FiveStats)
 
-base_2021 <- readRDS('data/base_2021.rds')
+#RegresiÃ³n tradicional
 
 set.seed(1712)
-arbol<-train(
-  #aquí va la regresión
+reg_tranqui<-train(
+  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + 
+  #aqu? va la regresi?n
   data=base_2021,
   method= "rpart",
   trcontrol= ,
@@ -130,9 +122,17 @@ arbol<-train(
 )
 
 
+##
 base_mar <- subset(base_2021, VIATRANS==1)
 
 table(base_mar$CLASE)
+
+
+
+#Random Forest
+
+
+#XGBoosting
 
 
 #Fin del script
