@@ -14,7 +14,7 @@ base_mar <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/data/
 
 #### comezamos a arreglar base
 
-df <- base_mar %>% select(PAISPRO, DEPTODES, VIATRANS, ACUERDO, PNK, CODA, VAFODO, FLETE, VACID, IMP1, LUIN, COPAEX)
+df <- Semestre_2021 %>% select(PAISPRO, DEPTODES, VIATRANS, ACUERDO, PNK, CODA, VAFODO, FLETE, VACID, IMP1, LUIN, COPAEX)
 
 
 # alistamiento de variables
@@ -61,6 +61,17 @@ df <- df %>% mutate(PNK2 = PNK^2,
 df$COPAEX = NULL
 
 
+#creamos bases train y test
+
+set.seed(101010)
+
+df <- df %>% mutate(holdout= as.logical(1:nrow(df) %in%
+                                                  sample(nrow(df), nrow(df)*.3)))
+test <- df[df$holdout==T,]
+train <- df[df$holdout==F,]
+
+
+
 
 
 
@@ -79,7 +90,7 @@ st(df, col.breaks = 12,
      c('Count','Percent')
    ))
 
-table(df$ACUERDO)
+table(df$PAISPRO)
 
 sum(is.na(df$PNK))
 sum(df$CODA)
