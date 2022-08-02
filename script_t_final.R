@@ -8,10 +8,14 @@ p_load(tidyverse,
        caret,
        huxreg,
        haven,
-       rpart)
+       rpart,
+       randomForest,
+       xgboost)
 
 base_mar <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/data/base_mar.rds")
+Semestre_2021 <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/Semestre_2021.rds")
 
+Semestre_2021<-subset(Semestre_2021, VIATRANS==1)
 #### comezamos a arreglar base
 
 df <- Semestre_2021 %>% select(PAISPRO, DEPTODES, VIATRANS, ACUERDO, PNK, CODA, VAFODO, FLETE, VACID, IMP1, LUIN, COPAEX)
@@ -50,21 +54,20 @@ df$LUIN <- factor(df$LUIN)
 
 df$PAISPRO <- factor(df$PAISPRO)
 
-#generamos una interacción
+#generamos una interacci?n
 
 df <- df %>% mutate(PNK2 = PNK^2,
                     PNK4 = PNK^4,
                     peso_acuerdo = PNK*ACUERDO)
 
-# eliminar copaex porque está generando ruido
+# eliminar copaex porque est? generando ruido
 
 df$COPAEX = NULL
 
 
 #creamos bases train y test
 
-set.seed(101010)
-
+set.seed(1712)
 df <- df %>% mutate(holdout= as.logical(1:nrow(df) %in%
                                                   sample(nrow(df), nrow(df)*.3)))
 test <- df[df$holdout==T,]
@@ -75,7 +78,7 @@ train <- df[df$holdout==F,]
 
 
 
-### estadísticas descriptivas
+### estad?sticas descriptivas
 
 library(vtable)
 
@@ -93,7 +96,6 @@ st(df, col.breaks = 12,
 table(df$PAISPRO)
 
 sum(is.na(df$PNK))
-sum(df$CODA)
 
 
 
@@ -121,31 +123,56 @@ ctrl <- trainControl(method = "cv",
                      savePredictions = TRUE,
                      summaryFunction = FiveStats)
 
+#Definimos grilla para xgboost
+grid_default <- expand.grid(nrounds = c(250,500),
+                            max_depth = c(1,3,5),
+                            eta = c(0.01,0.3,0.5),
+                            gamma = c(0,1),
+                            min_child_weight = c(10, 25,50),
+                            colsample_bytree = c(0.7),
+                            subsample = c(0.6))
 #RegresiÃ³n tradicional
 
 set.seed(1712)
 reg_tranqui<-train(
-  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + 
-  #aqu? va la regresi?n
-  data=base_2021,
-  method= "rpart",
-  trcontrol= ,
-  tuneLength=200
+  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  data=train,
+  method= "lm",
+  trcontrol= ctrl,
+  metric="RMSE"
+  #tuneLength=200
 )
-
+reg_tranqui
 
 ##
-base_mar <- subset(base_2021, VIATRANS==1)
+
 
 table(base_mar$CLASE)
 
 
 
 #Random Forest
-
-
+set.seed(1712)
+selva <- train(
+  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+ data=train,
+  method = "rf",
+  trControl = ctrl,
+  #family = "binomial",
+  #metric="Sens",
+  #p
+)
 #XGBoosting
 
+
+set.seed(1410)
+xgboost <- train(
+  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  method = "xgbTree",
+  trControl = ctrl,
+  #metric = "Sens",
+  tuneGrid = grid_default
+)
 
 #Fin del script
 
