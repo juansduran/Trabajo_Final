@@ -53,7 +53,8 @@ df$PAISPRO <- factor(df$PAISPRO)
 #generamos una interacción
 
 df <- df %>% mutate(PNK2 = PNK^2,
-                    PNK4 = PNK^4)
+                    PNK4 = PNK^4,
+                    peso_acuerdo = PNK*ACUERDO)
 
 # eliminar copaex porque está generando ruido
 
