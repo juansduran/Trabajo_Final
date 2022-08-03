@@ -1,7 +1,7 @@
 
 #Trabajo final
 rm(list=ls())
-setwd("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final")
+
 
 library(pacman)
 p_load(tidyverse,
@@ -12,8 +12,14 @@ p_load(tidyverse,
        randomForest,
        xgboost)
 
-base_mar <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/data/base_mar.rds")
+
 Semestre_2021 <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/Semestre_2021.rds")
+
+
+### tomamos las variables solo para transporte maritimo
+
+
+
 
 Semestre_2021<-subset(Semestre_2021, VIATRANS==1)
 #### comezamos a arreglar base
@@ -36,6 +42,8 @@ df$ACUERDO[is.na(df$ACUERDO)] <- 0
 df$ACUERDO[df$ACUERDO > 0] <- 1
 
 
+
+
 #eliminamos la observacion que tiene en peso neto 0, para eso primero lo convertimos en un nulo y luego se elimina
 
 length(df$PNK)
@@ -45,8 +53,12 @@ df$PNK[df$PNK <= 0] <- NA
 
 df <- df[!is.na(df$PNK),]
 
-
+df <- df[!is.na(df$PAISPRO),]
+df <- df[!is.na(df$DEPTODES),]
+df <- df[!is.na(df$VAFODO),]
 #convertimos COPAEX, LUIN, PAISPRO en factor
+
+df$DEPTODES <- factor(df$DEPTODES) 
 
 df$COPAEX <- factor(df$COPAEX) 
 
@@ -54,6 +66,7 @@ df$LUIN <- factor(df$LUIN)
 
 df$PAISPRO <- factor(df$PAISPRO)
 
+df$VAFODO_fact <- factor(df$VAFODO)
 #generamos una interacci?n
 
 df <- df %>% mutate(PNK2 = PNK^2,
@@ -83,7 +96,7 @@ train <- df[df$holdout==F,]
 library(vtable)
 
 #Getting complex
-st(df, col.breaks = 12,
+st(df, col.breaks = 15,
    summ = list(
      c('notNA(x)','mean(x)','sd(x^2)','min(x)','max(x)'),
      c('notNA(x)','mean(x)')
@@ -95,22 +108,10 @@ st(df, col.breaks = 12,
 
 table(df$PAISPRO)
 
-sum(is.na(df$PNK))
+sum(is.na(df$VAFODO_fact))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-#################################################33
+#################################################
 #Modelos#
 #SE utilizará el paquete caret, por lo que se creará una función para ver 
 #los estadísticos de comparación y una función de control con cross validation
@@ -138,42 +139,45 @@ reg_tranqui<-train(
   VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
   data=train,
   method= "lm",
-  trcontrol= ctrl,
-  metric="RMSE"
+  trcontrol= ctrl
   #tuneLength=200
 )
 reg_tranqui
 
 ##
+#tree
 
 
-table(base_mar$CLASE)
+
 
 
 
 #Random Forest
 set.seed(1712)
 selva <- train(
-  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
- data=train,
+  VAFODO_fact ~ PAISPRO + PNK,
+  data=train,
   method = "rf",
-  trControl = ctrl,
-  #family = "binomial",
-  #metric="Sens",
-  #p
+  trControl = ctrl
 )
+
 #XGBoosting
 
 
-set.seed(1410)
+set.seed(1712)
 xgboost <- train(
-  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  VAFODO_fact ~ PAISPRO + DEPTODES,
+  data=train,
   method = "xgbTree",
   trControl = ctrl,
-  #metric = "Sens",
   tuneGrid = grid_default
 )
 
+
+watchlist = list(train=train, test=test)
+model = xgb.train(data = train,
+                  max.depth = 3,
+                  nrounds = 100)
 #Fin del script
 
 
