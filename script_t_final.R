@@ -10,7 +10,8 @@ p_load(tidyverse,
        haven,
        rpart,
        randomForest,
-       xgboost)
+       xgboost
+       )
 
 
 Semestre_2021 <- readRDS("C:/Users/pcere/Dropbox/Machine Learning/Trabajo final/Semestre_2021.rds")
@@ -51,11 +52,14 @@ length(df$PNK)
 df$PNK[df$PNK <= 0] <- NA
 
 
+df$VACID[df$VACID <= 0] <- NA
+
 df <- df[!is.na(df$PNK),]
 
 df <- df[!is.na(df$PAISPRO),]
 df <- df[!is.na(df$DEPTODES),]
 df <- df[!is.na(df$VACID),]
+summary(df$VACID)
 #convertimos COPAEX, LUIN, PAISPRO en factor
 
 df$DEPTODES <- factor(df$DEPTODES) 
@@ -89,7 +93,7 @@ train <- df[df$holdout==F,]
 
 
 
-
+summary(train$VACID)
 
 ### estad?sticas descriptivas
 
@@ -108,7 +112,7 @@ st(df, col.breaks = 15,
 
 table(df$PAISPRO)
 
-sum(is.na(df$VACID_fact))
+sum(is.na(df$VACID))
 
 
 #################################################
@@ -125,13 +129,16 @@ ctrl <- trainControl(method = "cv",
                      summaryFunction = FiveStats)
 
 #Definimos grilla para xgboost
-grid_default <- expand.grid(nrounds = c(250,500),
+grilla<- expand.grid(nrounds = c(250,500),
                             max_depth = c(1,3,5),
                             eta = c(0.01,0.3,0.5),
                             gamma = c(0,1),
                             min_child_weight = c(10, 25,50),
                             colsample_bytree = c(0.7),
                             subsample = c(0.6))
+
+
+
 #Regresión tradicional
 
 set.seed(1712)
@@ -144,17 +151,15 @@ reg_tranqui<-train(
 )
 reg_tranqui
 
-##
+
+
 #KNN
-library("rpart")
 set.seed(1712)
-arbolazo <- train(
+veci <- train(
   VACID ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
   data = train,
-  method = "glm",
+  method = "knn",
   trControl = ctrl
-  #parms=list(split='Gini'),
-  #tuneLength=50
 )
 
 
@@ -177,14 +182,17 @@ xgboost <- train(
   data = train,
   method = "xgbTree",
   trControl = ctrl,
-  tuneGrid = grid_default
+  tuneGrid = grilla
 )
 
 
-watchlist = list(train=train, test=test)
-model = xgb.train(data = train,
-                  max.depth = 3,
-                  nrounds = 100)
+#####
+#Prediciones de la regresion
+restest <- 
+
+pred_reg <- predict(reg_tranqui, test)
+pred_reg
+
 #Fin del script
 
 
