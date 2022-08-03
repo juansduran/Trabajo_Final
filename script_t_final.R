@@ -87,16 +87,12 @@ test <- df[df$holdout==T,]
 train <- df[df$holdout==F,]
 
 
-
-
-
-
 ### estad?sticas descriptivas
 
 library(vtable)
 
 #Getting complex
-st(df, col.breaks = 15,
+st(df, col.breaks = 9,
    summ = list(
      c('notNA(x)','mean(x)','sd(x^2)','min(x)','max(x)'),
      c('notNA(x)','mean(x)')
@@ -105,6 +101,14 @@ st(df, col.breaks = 15,
      c('N','Mean','SD of X^2','Min','Max'),
      c('Count','Percent')
    ))
+
+#para contar los valores que más se repiten de la tabla de datos
+
+sort(table(unlist(as.data.frame(df$PAISPRO))), TRUE)[1:3]
+
+sort(table(unlist(as.data.frame(df$LUIN))), TRUE)[1:3]
+
+sort(table(unlist(as.data.frame(df$DEPTODES))), TRUE)[1:3]
 
 table(df$PAISPRO)
 
