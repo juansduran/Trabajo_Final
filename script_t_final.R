@@ -55,7 +55,7 @@ df <- df[!is.na(df$PNK),]
 
 df <- df[!is.na(df$PAISPRO),]
 df <- df[!is.na(df$DEPTODES),]
-df <- df[!is.na(df$VAFODO),]
+df <- df[!is.na(df$VACID),]
 #convertimos COPAEX, LUIN, PAISPRO en factor
 
 df$DEPTODES <- factor(df$DEPTODES) 
@@ -66,7 +66,7 @@ df$LUIN <- factor(df$LUIN)
 
 df$PAISPRO <- factor(df$PAISPRO)
 
-df$VAFODO_fact <- factor(df$VAFODO)
+df$VACID_fact <- factor(df$VACID)
 #generamos una interacci?n
 
 df <- df %>% mutate(PNK2 = PNK^2,
@@ -108,7 +108,7 @@ st(df, col.breaks = 15,
 
 table(df$PAISPRO)
 
-sum(is.na(df$VAFODO_fact))
+sum(is.na(df$VACID_fact))
 
 
 #################################################
@@ -136,7 +136,7 @@ grid_default <- expand.grid(nrounds = c(250,500),
 
 set.seed(1712)
 reg_tranqui<-train(
-  VAFODO ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  VACID ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
   data=train,
   method= "lm",
   trcontrol= ctrl
@@ -145,17 +145,24 @@ reg_tranqui<-train(
 reg_tranqui
 
 ##
-#tree
-
-
-
+#KNN
+library("rpart")
+set.seed(1712)
+arbolazo <- train(
+  VACID ~ PAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  data = train,
+  method = "glm",
+  trControl = ctrl
+  #parms=list(split='Gini'),
+  #tuneLength=50
+)
 
 
 
 #Random Forest
 set.seed(1712)
 selva <- train(
-  VAFODO_fact ~ PAISPRO + PNK,
+  VACID_fact ~ PAISPRO + PNK,
   data=train,
   method = "rf",
   trControl = ctrl
@@ -166,8 +173,8 @@ selva <- train(
 
 set.seed(1712)
 xgboost <- train(
-  VAFODO_fact ~ PAISPRO + DEPTODES,
-  data=train,
+  VACID ~ PAISPROPAISPRO + DEPTODES + ACUERDO + PNK + PNK2 + IMP1 + LUIN + peso_acuerdo,
+  data = train,
   method = "xgbTree",
   trControl = ctrl,
   tuneGrid = grid_default
